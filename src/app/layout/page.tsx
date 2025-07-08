@@ -133,7 +133,7 @@ export default function LayoutPage() {
   }
 
   return (
-    <div className='h-full p-6 bg-gradient-to-r from-rose-100 to-teal-100'>
+    <div className='h-full overflow-y-auto p-6 bg-gradient-to-r from-rose-100 to-teal-100'>
       <form className='max-w-[500px] mx-auto flex flex-col gap-6'>
         <FileInput
           clearable
