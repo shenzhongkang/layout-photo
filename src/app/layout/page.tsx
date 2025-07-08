@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import type { PhotoSpec } from '@/lib/types';
-import { FileInput, Group, Image as MantineImage, Radio, RadioGroup, Select } from '@mantine/core';
+import { Button, FileInput, Group, Image as MantineImage, Radio, RadioGroup, Select } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { getPixelFromCM } from '@/lib/get-pixel-from-cm';
 
@@ -9,6 +9,7 @@ export default function LayoutPage() {
   const [photoSpecs, setPhotoSpecs] = useState<PhotoSpec[]>([]);
   const [containerSpecs, setContainerSpecs] = useState<PhotoSpec[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
+  const [count, setCount] = useState(1)
 
   const form = useForm({
     initialValues: {
@@ -17,6 +18,90 @@ export default function LayoutPage() {
       containerSpec: '6寸(4R)',
       dividerColor: 'blue',
     },
+    onValuesChange: (values) => {
+      if (values.photoFile) {
+        // read image and get width and height
+        const file = values.photoFile as File;
+        const reader = new FileReader();
+        reader.onload = () => {
+          const image = new Image();
+          image.src = reader.result as string;
+          image.onload = () => {
+            const imgW = image.naturalWidth;
+            const imgH = image.naturalHeight;
+            const photoSpec = photoSpecs.find((spec) => spec.label === values.photoSpec);
+            const containerSpec = containerSpecs.find((spec) => spec.label === values.containerSpec);
+            if (!photoSpec || !containerSpec) return;
+            const targetW = getPixelFromCM(photoSpec.width);
+            const targetH = getPixelFromCM(photoSpec.height);
+            let containerW = getPixelFromCM(containerSpec.width);
+            let containerH = getPixelFromCM(containerSpec.height);
+
+            // cut the source photo.
+            const ratioW = imgW / targetW;
+            const ratioH = imgH / targetH;
+
+            let cutW, cutH, cutX, cutY;
+
+            if (ratioW > ratioH) {
+              cutW = targetW * ratioH;
+              cutH = imgH;
+              cutX = (imgW - cutW) / 2;
+              cutY = 0;
+            } else {
+              cutH = targetH * ratioW;
+              cutW = imgW;
+              cutY = (imgH - cutH) / 2;
+              cutX = 0;
+            }
+
+            const GAP = 5;
+
+            let wn = Math.floor(containerW / (targetW + GAP));
+            let hn = Math.floor(containerH / (targetH + GAP));
+
+            const wn2 = Math.floor(containerH / (targetW + GAP));
+            const hn2 = Math.floor(containerW / (targetH + GAP));
+
+            if (wn2 * hn2 > wn * hn) {
+              let tmp = containerW;
+              containerW = containerH;
+              containerH = tmp;
+              wn = wn2;
+              hn = hn2;
+            }
+
+            const wStart = (containerW - wn * (targetW + GAP) + GAP) / 2;
+            const hStart = (containerH - hn * (targetH + GAP) + GAP) / 2;
+
+            // create canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            canvas.width = containerW;
+            canvas.height = containerH;
+
+            // add background color.
+            ctx.fillStyle = values.dividerColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < wn; i++) {
+              for (let j = 0; j < hn; j++) {
+                ctx.drawImage(image, cutX, cutY, cutW, cutH, wStart + i * (targetW + GAP), hStart + j * (targetH + GAP), targetW, targetH);
+              }
+            }
+
+            const dataURL = canvas.toDataURL('image/jpeg', 1);
+            setPreview(dataURL);
+            setCount(wn * hn)
+          };
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreview(null);
+      }
+    }
   });
 
   useEffect(() => {
@@ -32,64 +117,23 @@ export default function LayoutPage() {
     setContainerSpecs(containerSpecs);
   };
 
-  form.watch('photoFile', ({ value }) => {
-    if (value) {
-      // read image and get width and height
-      const file = value as File;
-      const reader = new FileReader();
-      reader.onload = () => {
-        const image = new Image();
-        image.src = reader.result as string;
-        image.onload = () => {
-          const photoSpec = photoSpecs.find((spec) => spec.label === form.values.photoSpec);
-          const containerSpec = containerSpecs.find((spec) => spec.label === form.values.containerSpec);
-          if (!photoSpec || !containerSpec) return;
-          const selectedPhotoSpec = {
-            width: getPixelFromCM(photoSpec.width),
-            height: getPixelFromCM(photoSpec.height),
-          };
+  const download = () => {
+    if (!preview) return;
 
-          const wRatio = image.naturalWidth / selectedPhotoSpec.width;
-          const hRatio = image.naturalHeight / selectedPhotoSpec.height;
-          let cutW, cutH, cutX, cutY;
+    const photoSpec = form.values.photoSpec;
+    const containerSpec = form.values.containerSpec;
+    const filename = `${count}张${photoSpec}[以${containerSpec}冲洗]_${new Date().toISOString().slice(0, 10)}.jpg`;
 
-          if (wRatio > hRatio) {
-            cutW = selectedPhotoSpec.width * hRatio;
-            cutH = selectedPhotoSpec.height;
-            cutX = (image.naturalWidth - cutW) / 2;
-            cutY = 0;
-          } else {
-            cutW = selectedPhotoSpec.width;
-            cutH = selectedPhotoSpec.height * wRatio;
-            cutX = 0;
-            cutY = (image.naturalHeight - cutH) / 2;
-          }
-
-          // cut image
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
-          canvas.width = selectedPhotoSpec.width;
-          canvas.height = selectedPhotoSpec.height;
-
-          // add background color.
-          ctx.fillStyle = form.values.dividerColor;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-          ctx.drawImage(image, cutX, cutY, cutW, cutH, 0, 0, cutW, cutH);
-
-          const dataURL = canvas.toDataURL('image/jpeg', 1);
-          setPreview(dataURL);
-        };
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setPreview(null);
-    }
-  });
+    const link = document.createElement('a');
+    link.href = preview;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   return (
-    <div className='p-6'>
+    <div className='h-full p-6 bg-gradient-to-r from-rose-100 to-teal-100'>
       <form className='max-w-[500px] mx-auto flex flex-col gap-6'>
         <FileInput
           clearable
@@ -137,11 +181,12 @@ export default function LayoutPage() {
             <Radio value='gray' label='灰色' />
           </Group>
         </RadioGroup>
-        <div>
+        <div className='flex flex-col gap-4'>
           <span className='text-sm font-semibold'>预览</span>
           <div>
             <MantineImage src={preview} alt='preview' fallbackSrc='/sample.jpg' />
           </div>
+          <Button onClick={download}>下载</Button>
         </div>
       </form>
     </div>

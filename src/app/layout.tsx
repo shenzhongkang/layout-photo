@@ -19,7 +19,9 @@ export default function RootLayout({
         <ColorSchemeScript />
       </head>
       <body className={`antialiased`}>
-        <MantineProvider>{children}</MantineProvider>
+        <MantineProvider theme={{
+          primaryColor: 'indigo'
+        }}>{children}</MantineProvider>
       </body>
     </html>
   );
