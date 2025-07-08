@@ -64,7 +64,7 @@ export default function LayoutPage() {
             const hn2 = Math.floor(containerW / (targetH + GAP));
 
             if (wn2 * hn2 > wn * hn) {
-              let tmp = containerW;
+              const tmp = containerW;
               containerW = containerH;
               containerH = tmp;
               wn = wn2;
