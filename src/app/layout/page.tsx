@@ -31,7 +31,7 @@ export default function LayoutPage() {
   const { toggleDirection, dir } = useDirection();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const locale = useLocale();
-  const [_, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm({
     initialValues: {
@@ -196,6 +196,7 @@ export default function LayoutPage() {
           radius='md'
           size='lg'
           aria-label='Toggle locale'
+          disabled={isPending}
         >
           <IconLanguage stroke={1.5} />
         </ActionIcon>
@@ -205,6 +206,7 @@ export default function LayoutPage() {
           radius='md'
           size='lg'
           aria-label='Toggle color scheme'
+          disabled={isPending}
         >
           <IconSun stroke={1.5} className='block dark:hidden' />
           <IconMoon stroke={1.5} className='hidden dark:block' />
