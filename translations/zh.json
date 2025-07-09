@@ -1,0 +1,17 @@
+{
+  "layout": {
+    "select-photo": "选择照片上传",
+    "select-photo-description": "上传单张照片，格式为 jpeg, jpg, png, tiff",
+    "select-photo-spec": "选择照片规格",
+    "select-photo-spec-description": "请确保上传的照片大小符合选择的照片规格",
+    "select-print-paper": "选择打印纸张",
+    "select-print-paper-description": "一般选择6寸的就好，这个价格最合适",
+    "select-divider-color": "选择分割线颜色",
+    "select-divider-color-description": "用来分隔每张照片",
+    "blue": "蓝色",
+    "white": "白色",
+    "gray": "灰色",
+    "preview": "预览",
+    "download": "下载"
+  }
+}

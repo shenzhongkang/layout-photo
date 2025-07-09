@@ -1,15 +1,44 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import type { PhotoSpec } from '@/lib/types';
-import { Button, FileInput, Group, Image as MantineImage, Radio, RadioGroup, Select } from '@mantine/core';
+import {
+  ActionIcon,
+  Button,
+  FileInput,
+  Group,
+  MantineColorScheme,
+  Image as MantineImage,
+  Radio,
+  RadioGroup,
+  Select,
+  useDirection,
+  useMantineColorScheme,
+} from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { getPixelFromCM } from '@/lib/get-pixel-from-cm';
+import { useLocale, useTranslations } from 'next-intl';
+import {
+  IconLabel,
+  IconLanguage,
+  IconMoon,
+  IconSun,
+  IconTextDirectionLtr,
+  IconTextDirectionRtl,
+} from '@tabler/icons-react';
+import clsx from 'clsx';
+import { Locale } from '@/i18n/config';
+import { setUserColorScheme, setUserLocale } from '../api/locale';
 
 export default function LayoutPage() {
   const [photoSpecs, setPhotoSpecs] = useState<PhotoSpec[]>([]);
   const [containerSpecs, setContainerSpecs] = useState<PhotoSpec[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
   const [count, setCount] = useState(1);
+  const t = useTranslations('layout');
+  const { toggleDirection, dir } = useDirection();
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const locale = useLocale();
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm({
     initialValues: {
@@ -142,24 +171,77 @@ export default function LayoutPage() {
     document.body.removeChild(link);
   };
 
+  const changeLocale = (value: string) => {
+    const locale = value as Locale;
+    startTransition(() => {
+      setUserLocale(locale);
+    });
+  };
+
+  const changeTheme = (value: string) => {
+    const theme = value as MantineColorScheme;
+    setColorScheme(theme);
+    startTransition(() => {
+      setUserColorScheme(theme);
+    });
+  };
+
   return (
-    <div className='h-full overflow-y-auto p-6 bg-gradient-to-r from-rose-100 to-teal-100'>
+    <div
+      className={clsx(
+        'h-full overflow-y-auto p-6',
+        colorScheme === 'light' && 'bg-gradient-to-r from-rose-100 to-teal-100',
+        colorScheme === 'dark' && 'bg-gradient-to-r from-slate-900 to-slate-800'
+      )}
+    >
+      <div className='flex gap-3 mb-4 justify-end'>
+        <ActionIcon
+          onClick={() => {
+            changeLocale(locale === 'zh' ? 'en' : 'zh');
+          }}
+          variant='default'
+          radius='md'
+          size='lg'
+          aria-label='Toggle locale'
+        >
+          <IconLanguage stroke={1.5} />
+        </ActionIcon>
+        <ActionIcon
+          onClick={() => changeTheme(colorScheme === 'light' ? 'dark' : 'light')}
+          variant='default'
+          radius='md'
+          size='lg'
+          aria-label='Toggle color scheme'
+        >
+          <IconSun stroke={1.5} className='block dark:hidden' />
+          <IconMoon stroke={1.5} className='hidden dark:block' />
+        </ActionIcon>
+        <ActionIcon
+          onClick={() => toggleDirection()}
+          variant='default'
+          radius='md'
+          size='lg'
+          aria-label='Toggle direction'
+        >
+          {dir === 'rtl' ? <IconTextDirectionLtr stroke={1.5} /> : <IconTextDirectionRtl stroke={1.5} />}
+        </ActionIcon>
+      </div>
       <form className='max-w-[500px] mx-auto flex flex-col gap-6'>
         <FileInput
           clearable
           withAsterisk
-          label='选择照片上传'
+          label={t('select-photo')}
           accept='image/jpeg, image/jpg, image/png, image/tiff'
-          description='上传单张照片，格式为 jpeg, jpg, png, tiff'
-          placeholder='选择照片'
+          description={t('select-photo-description')}
+          placeholder={t('select-photo')}
           key={form.key('photoFile')}
           {...form.getInputProps('photoFile')}
         />
         <Select
           withAsterisk
-          label='选择照片规格'
-          description='请确保上传的照片大小符合选择的照片规格'
-          placeholder='选择照片规格'
+          label={t('select-photo-spec')}
+          description={t('select-photo-spec-description')}
+          placeholder={t('select-photo-spec')}
           data={photoSpecs.map((spec) => ({
             label: `${spec.label} [${spec.width}cm * ${spec.height}cm]`,
             value: spec.label,
@@ -169,9 +251,9 @@ export default function LayoutPage() {
         />
         <Select
           withAsterisk
-          label='选择打印纸张'
-          description='一般选择6寸的就好，这个价格最合适'
-          placeholder='选择打印纸张'
+          label={t('select-print-paper')}
+          description={t('select-print-paper-description')}
+          placeholder={t('select-print-paper')}
           data={containerSpecs.map((spec) => ({
             label: `${spec.label} [${spec.width}cm * ${spec.height}cm]`,
             value: spec.label,
@@ -180,23 +262,23 @@ export default function LayoutPage() {
           {...form.getInputProps('containerSpec')}
         />
         <RadioGroup
-          label='选择分割线颜色'
-          description='用来分隔每张照片'
+          label={t('select-divider-color')}
+          description={t('select-divider-color-description')}
           key={form.key('dividerColor')}
           {...form.getInputProps('dividerColor')}
         >
           <Group mt='sm'>
-            <Radio value='blue' label='蓝色' />
-            <Radio value='white' label='白色' />
-            <Radio value='gray' label='灰色' />
+            <Radio value='blue' label={t('blue')} />
+            <Radio value='white' label={t('white')} />
+            <Radio value='gray' label={t('gray')} />
           </Group>
         </RadioGroup>
         <div className='flex flex-col gap-4'>
-          <span className='text-sm font-semibold'>预览</span>
+          <span className='text-sm font-semibold'>{t('preview')}</span>
           <div>
             <MantineImage src={preview} alt='preview' fallbackSrc='/sample.jpg' />
           </div>
-          <Button onClick={download}>下载</Button>
+          <Button onClick={download}>{t('download')}</Button>
         </div>
       </form>
     </div>

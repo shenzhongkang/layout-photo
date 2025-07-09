@@ -1,0 +1,17 @@
+{
+  "layout": {
+    "select-photo": "Select photo",
+    "select-photo-description": "Upload a single photo, format as jpeg, jpg, png, tiff",
+    "select-photo-spec": "Select photo spec",
+    "select-photo-spec-description": "Please ensure the uploaded photo size matches the selected photo spec",
+    "select-print-paper": "Select print paper",
+    "select-print-paper-description": "Generaly select 6 inch is enough, this is the most affordable",
+    "select-divider-color": "Select divider color",
+    "select-divider-color-description": "Used to separate each photo",
+    "blue": "Blue",
+    "white": "White",
+    "gray": "Gray",
+    "preview": "Preview",
+    "download": "Download"
+  }
+}
