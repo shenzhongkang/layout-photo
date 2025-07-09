@@ -9,7 +9,7 @@ export default function LayoutPage() {
   const [photoSpecs, setPhotoSpecs] = useState<PhotoSpec[]>([]);
   const [containerSpecs, setContainerSpecs] = useState<PhotoSpec[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
-  const [count, setCount] = useState(1)
+  const [count, setCount] = useState(1);
 
   const form = useForm({
     initialValues: {
@@ -88,20 +88,30 @@ export default function LayoutPage() {
 
             for (let i = 0; i < wn; i++) {
               for (let j = 0; j < hn; j++) {
-                ctx.drawImage(image, cutX, cutY, cutW, cutH, wStart + i * (targetW + GAP), hStart + j * (targetH + GAP), targetW, targetH);
+                ctx.drawImage(
+                  image,
+                  cutX,
+                  cutY,
+                  cutW,
+                  cutH,
+                  wStart + i * (targetW + GAP),
+                  hStart + j * (targetH + GAP),
+                  targetW,
+                  targetH
+                );
               }
             }
 
             const dataURL = canvas.toDataURL('image/jpeg', 1);
             setPreview(dataURL);
-            setCount(wn * hn)
+            setCount(wn * hn);
           };
         };
         reader.readAsDataURL(file);
       } else {
         setPreview(null);
       }
-    }
+    },
   });
 
   useEffect(() => {
@@ -130,7 +140,7 @@ export default function LayoutPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }
+  };
 
   return (
     <div className='h-full overflow-y-auto p-6 bg-gradient-to-r from-rose-100 to-teal-100'>
