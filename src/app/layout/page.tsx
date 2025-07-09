@@ -17,14 +17,7 @@ import {
 import { useForm } from '@mantine/form';
 import { getPixelFromCM } from '@/lib/get-pixel-from-cm';
 import { useLocale, useTranslations } from 'next-intl';
-import {
-  IconLabel,
-  IconLanguage,
-  IconMoon,
-  IconSun,
-  IconTextDirectionLtr,
-  IconTextDirectionRtl,
-} from '@tabler/icons-react';
+import { IconLanguage, IconMoon, IconSun, IconTextDirectionLtr, IconTextDirectionRtl } from '@tabler/icons-react';
 import clsx from 'clsx';
 import { Locale } from '@/i18n/config';
 import { setUserColorScheme, setUserLocale } from '../api/locale';
@@ -38,7 +31,7 @@ export default function LayoutPage() {
   const { toggleDirection, dir } = useDirection();
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const locale = useLocale();
-  const [isPending, startTransition] = useTransition();
+  const [_, startTransition] = useTransition();
 
   const form = useForm({
     initialValues: {
